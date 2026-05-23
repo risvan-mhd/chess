@@ -1,0 +1,9 @@
+# Binary
+main
+*.out
+
+# Object files
+*.o
+
+# Recordings Folder (Personal)
+.recordings/
