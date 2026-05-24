@@ -128,6 +128,24 @@ bool has_selected_piece(void) {
     return selected_cell.row != -1 && selected_cell.col != -1;
 }
 
+bool is_legal_move(int from_row, int from_col, int to_row, int to_col) {
+    Piece *target = &board[to_row][to_col];
+    Piece *p = &board[from_row][from_col];
+    if (p->type == EMPTY)
+        return false;
+
+    // Pawn
+    if (p->type == PAWN) {
+        if (target->type != EMPTY || from_col != to_col)
+            return false;
+
+        int direction = (p->color == PIECE_BLACK) ? 1 : -1;
+        return to_row == from_row + direction;
+    }
+
+    return false;
+}
+
 void handle_input(void) {
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         return;
@@ -156,7 +174,8 @@ void handle_input(void) {
         return;
     }
 
-    move_piece(selected_cell.row, selected_cell.col, r, c);
+    if (is_legal_move(selected_cell.row, selected_cell.col, r, c))
+        move_piece(selected_cell.row, selected_cell.col, r, c);
 
     selected_cell.row = -1;
     selected_cell.col = -1;
@@ -171,10 +190,11 @@ int main(void) {
     load_textures();
 
     while (!WindowShouldClose()) {
+        handle_input();
+
         BeginDrawing();
         ClearBackground(BLACK);
         draw_board();
-        handle_input();
         EndDrawing();
     }
 
