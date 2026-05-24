@@ -20,6 +20,7 @@
 typedef enum {
     EMPTY = -1,
     PAWN,
+    KNIGHT,
 
     PIECE_COUNT,
 } PieceType;
@@ -67,11 +68,20 @@ void init_board(void) {
         set_piece(1, i, PAWN, PIECE_BLACK);
         set_piece(6, i, PAWN, PIECE_WHITE);
     }
+
+    // Knight
+    set_piece(0, 1, KNIGHT, PIECE_BLACK);
+    set_piece(0, 6, KNIGHT, PIECE_BLACK);
+    set_piece(7, 1, KNIGHT, PIECE_WHITE);
+    set_piece(7, 6, KNIGHT, PIECE_WHITE);
 }
 
 void load_textures(void) {
     pieces[PIECE_BLACK][PAWN] = LoadTexture("./assets/bp.png");
     pieces[PIECE_WHITE][PAWN] = LoadTexture("./assets/wp.png");
+
+    pieces[PIECE_BLACK][KNIGHT] = LoadTexture("./assets/bN.png");
+    pieces[PIECE_WHITE][KNIGHT] = LoadTexture("./assets/wN.png");
 
     for (size_t i = 0; i < ARRAY_LEN(pieces); i++) {
         for (size_t j = 0; j < ARRAY_LEN(pieces[i]); j++) {
@@ -128,6 +138,7 @@ bool has_selected_piece(void) {
     return selected_cell.row != -1 && selected_cell.col != -1;
 }
 
+// TODO: Complete pawn logic
 bool is_legal_move(int from_row, int from_col, int to_row, int to_col) {
     Piece *target = &board[to_row][to_col];
     Piece *p = &board[from_row][from_col];
