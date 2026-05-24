@@ -13,6 +13,8 @@
 #define DARK_CELL_COLOR ((Color){118, 150, 86, 255})
 #define LIGHT_CELL_COLOR ((Color){238, 238, 210, 255})
 
+#define SELECTED_CELL_COLOR ORANGE
+
 
 typedef enum {
     EMPTY = -1,
@@ -38,6 +40,9 @@ Piece board[ROWS][COLS];
 // Piece textures
 Texture2D pieces[2][PIECE_COUNT];
 
+// States
+Vector2 selected_cell = {-1, -1};
+
 
 void set_piece(int row, int col, PieceType type, PieceColor color) {
     Piece *p = &board[row][col];
@@ -52,7 +57,7 @@ void init_board(void) {
         }
     }
 
-    // Black pawns
+    // Pawns
     for (int i = 0; i < COLS; i++) {
         set_piece(1, i, PAWN, PIECE_BLACK);
         set_piece(6, i, PAWN, PIECE_WHITE);
@@ -97,10 +102,28 @@ void draw_board(void) {
         for (int c = 0; c < COLS; c++) {
             int x = c * CELL_SIZE;
             int y = r * CELL_SIZE;
-            Color color = (r + c) % 2 == 0 ? LIGHT_CELL_COLOR : DARK_CELL_COLOR;
+            Color color = (selected_cell.x == c && selected_cell.y == r)
+                              ? SELECTED_CELL_COLOR
+                          : (r + c) % 2 == 0 ? LIGHT_CELL_COLOR
+                                             : DARK_CELL_COLOR;
 
             DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, color);
             draw_piece(r, c);
+        }
+    }
+}
+
+
+void handle_input(void) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 mouse = GetMousePosition();
+
+        int c = mouse.x / (int)CELL_SIZE;
+        int r = mouse.y / (int)CELL_SIZE;
+
+        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+            selected_cell.x = c;
+            selected_cell.y = r;
         }
     }
 }
@@ -117,6 +140,7 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
         draw_board();
+        handle_input();
         EndDrawing();
     }
 
