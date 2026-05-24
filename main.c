@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 #define ARRAY_LEN(arr) (sizeof((arr)) / sizeof((arr)[0]))
@@ -34,6 +35,10 @@ typedef struct {
     PieceColor color;
 } Piece;
 
+typedef struct {
+    int row, col;
+} Cell;
+
 
 Piece board[ROWS][COLS];
 
@@ -41,7 +46,7 @@ Piece board[ROWS][COLS];
 Texture2D pieces[2][PIECE_COUNT];
 
 // States
-Vector2 selected_cell = {-1, -1};
+Cell selected_cell = {-1, -1};
 
 
 void set_piece(int row, int col, PieceType type, PieceColor color) {
@@ -102,7 +107,7 @@ void draw_board(void) {
         for (int c = 0; c < COLS; c++) {
             int x = c * CELL_SIZE;
             int y = r * CELL_SIZE;
-            Color color = (selected_cell.x == c && selected_cell.y == r)
+            Color color = (selected_cell.row == r && selected_cell.col == c)
                               ? SELECTED_CELL_COLOR
                           : (r + c) % 2 == 0 ? LIGHT_CELL_COLOR
                                              : DARK_CELL_COLOR;
@@ -114,18 +119,47 @@ void draw_board(void) {
 }
 
 
+void move_piece(int from_row, int from_col, int to_row, int to_col) {
+    board[to_row][to_col] = board[from_row][from_col];
+    set_piece(from_row, from_col, EMPTY, PIECE_NONE);
+}
+
+bool has_selected_piece(void) {
+    return selected_cell.row != -1 && selected_cell.col != -1;
+}
+
 void handle_input(void) {
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        Vector2 mouse = GetMousePosition();
+    if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        return;
 
-        int c = mouse.x / (int)CELL_SIZE;
-        int r = mouse.y / (int)CELL_SIZE;
+    Vector2 mouse = GetMousePosition();
 
-        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
-            selected_cell.x = c;
-            selected_cell.y = r;
+    int c = mouse.x / (int)CELL_SIZE;
+    int r = mouse.y / (int)CELL_SIZE;
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS)
+        return;
+
+    Piece *clicked = &board[r][c];
+    if (!has_selected_piece()) {
+        if (clicked->type != EMPTY) {
+            selected_cell.row = r;
+            selected_cell.col = c;
         }
+
+        return;
     }
+
+    // Deselect
+    if (selected_cell.row == r && selected_cell.col == c) {
+        selected_cell.row = -1;
+        selected_cell.col = -1;
+        return;
+    }
+
+    move_piece(selected_cell.row, selected_cell.col, r, c);
+
+    selected_cell.row = -1;
+    selected_cell.col = -1;
 }
 
 
